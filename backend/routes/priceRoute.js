@@ -24,13 +24,13 @@ router.get("/price", async (req, res) => {
     const ts = Number(timestamp);
     const cacheKey = `price:${token}:${normalizedNetwork}:${ts}`;
 
-    // 1️⃣ Try Redis cache
+    
     const cached = await redisClient.get(cacheKey);
     if (cached) {
       return res.json({ ...JSON.parse(cached), source: "cache" });
     }
 
-    // 2️⃣ Try MongoDB
+   
     const priceDoc = await Price.findOne({
       token,
       network: normalizedNetwork,
@@ -46,7 +46,7 @@ router.get("/price", async (req, res) => {
       return res.json(result);
     }
 
-    // 3️⃣ Try Alchemy API
+ 
     const alchemyNetwork = alchemyNetworkMap[normalizedNetwork];
     if (!alchemyNetwork) {
       return res.status(400).json({ error: "Unsupported network" });
@@ -75,7 +75,7 @@ router.get("/price", async (req, res) => {
       const result = { price: alchemyPrice, source: "alchemy" };
       await redisClient.set(cacheKey, JSON.stringify(result), { EX: 300 });
 
-      // Optional: Save to DB
+      
       await Price.create({
         token,
         network: normalizedNetwork,
@@ -86,7 +86,7 @@ router.get("/price", async (req, res) => {
       return res.json(result);
     }
 
-    // 4️⃣ Interpolate if Alchemy fails
+
     const alchemy = getAlchemyInstance(normalizedNetwork);
     const interpolated = await getPriceWithInterpolation(token, normalizedNetwork, ts, alchemy);
 
@@ -99,7 +99,7 @@ router.get("/price", async (req, res) => {
       return res.json(result);
     }
 
-    // ❌ No result found
+
     return res.status(404).json({ error: "Price not found" });
   } catch (err) {
     console.error("GET /price error:", err.message);

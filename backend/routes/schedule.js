@@ -21,8 +21,7 @@ router.post("/schedule", async (req, res) => {
     );
     const now = Math.floor(Date.now() / 1000);
 
-    const groupId = uuid(); // Generate a unique group ID for the job
-
+    const groupId = uuid(); 
     const jobs = [];
     const jobIds = [];
 
@@ -51,14 +50,14 @@ router.post("/schedule", async (req, res) => {
   }
 });
 
-// GET /api/schedule/:groupId
+
 router.get("/schedule/:groupId", async (req, res) => {
   const { groupId } = req.params;
 
   try {
     const keyExists = await redisClient.exists(`group:${groupId}`);
     console.log("Redis key exists:", keyExists);
-    const jobIds = await redisClient.lRange(`group:${groupId}`, 0, -1); // Get job IDs
+    const jobIds = await redisClient.lRange(`group:${groupId}`, 0, -1); 
     console.log("Fetching progress for group:", groupId, "with jobs:", jobIds);
     const jobs = await Promise.all(jobIds.map((id) => priceQueue.getJob(id)));
 

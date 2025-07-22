@@ -35,14 +35,12 @@ export const fetchPrice = async (job) => {
   console.log(`Fetched price for ${token} at ${timestamp}:`, price);
   if (!price) throw new Error("Price fetch failed");
 
-  // Save to MongoDB
   await Price.updateOne(
     { token, network, timestamp },
     { price },
     { upsert: true }
   );
 
-  // Cache in Redis
   await connection.set(
     `price:${token}:${network}:${timestamp}`,
     JSON.stringify({ price, source: "alchemy" }),
@@ -60,8 +58,7 @@ async function getHistoricalTokenPrice(token, timestamp, network, alchemy) {
     return null;
   }
 
-  // If timestamp is before Jan 1, 2021, reset it to Jan 1, 2021
-  const MIN_TIMESTAMP = 1609459200; // 2021-01-01T00:00:00Z
+  const MIN_TIMESTAMP = 1609459200; 
   const adjustedTimestamp = Math.max(timestamp, MIN_TIMESTAMP);
 
   const start = new Date(adjustedTimestamp * 1000).toISOString();
@@ -115,72 +112,3 @@ async function getHistoricalTokenPrice(token, timestamp, network, alchemy) {
   }
 }
 
-/* async function getCoinGeckoHistoricalPrice(tokenAddress, timestamp, network) {
-  try {
-    const platformMap = {
-      ethereum: "ethereum",
-      polygon: "polygon-pos",
-    };
-
-    const platform = platformMap[network] || "ethereum";
-    console.log(platform);
-
-    const now = Math.floor(Date.now() / 1000);
-    const oneYearAgo = now - 365 * 24 * 60 * 60;
-    if (timestamp < oneYearAgo) {
-      console.warn(
-        `⏳ Skipping CoinGecko: ${tokenAddress} at ${timestamp} exceeds 365-day limit`
-      );
-      return null; // allow fallback to Alchemy or Interpolation
-    }
-
-    const date = new Date(timestamp * 1000).toISOString().split("T")[0];
-
-    const tokenInfoUrl = `https://api.coingecko.com/api/v3/coins/${platform}/contract/${tokenAddress}`;
-    const tokenResponse = await coingeckoLimiter.schedule(() =>
-      axios.get(tokenInfoUrl, {
-        timeout: 15000,
-      })
-    );
-
-    const coinId = tokenResponse.data.id;
-    console.log("coin", coinId);
-
-    const priceUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${date
-      .split("-")
-      .reverse()
-      .join("-")}&localization=false`;
-
-    const fetchprice = async () => {
-      const priceResponse = await coingeckoLimiter.schedule(() =>
-        axios.get(priceUrl, {
-          timeout: 7000,
-          headers: {
-            x_cg_pro_api_key: process.env.COINGECKO_API_KEY,
-          },
-        })
-      );
-      const price = priceResponse.data.market_data?.current_price?.inr || null;
-      if (!price) {
-        throw new Error("Price not found for the given date");
-      }
-      return price;
-    };
-
-    return await pRetry(fetchprice, {
-      retries: 5,
-      factor: 2,
-      minTimeout: 2000,
-      maxTimeout: 10000,
-      onFailedAttempt: (error) => {
-        console.warn(
-          `Retry ${error.attemptNumber} for ${tokenAddress}: ${error.message}`
-        );
-      },
-    });
-  } catch (error) {
-    console.error("CoinGecko API error:", error.message);
-    return null;
-  }
-}
- */
