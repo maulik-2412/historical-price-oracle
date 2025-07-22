@@ -19,19 +19,19 @@
 * Alchemy
 
 For working on project in local environment go to
-``bash
+``
 /frontend
 `` 
 Then run:
-``bash
+``
 npm run dev
 ``
 Go to:
-``bash
+``
 /backend
 ``
 Then run:
-``bash
+``
 nodemon app.js
 ``
 Set up MongoDB and Redis and add environment variables and you are good to go.
