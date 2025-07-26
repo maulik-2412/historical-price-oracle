@@ -191,7 +191,7 @@ export default function Home() {
 
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                ${price.toFixed(6)}
+                ${!isNaN(Number(price)) ? Number(price).toFixed(6) : '0.000000'}
               </div>
               <p className="text-sm text-gray-500 mt-1">
                 Price at {new Date(timestamp * 1000).toLocaleString()}
